@@ -6,7 +6,6 @@ import { SentinelStore } from '../../core/sentinel.store';
   template: `
     <header class="page-heading">
       <div><p class="eyebrow">Investigacion</p><h1>Incidencias</h1><p>Evidencia, impacto y progreso de resolucion.</p></div>
-      <button class="button primary">+ Declarar incidencia</button>
     </header>
     <section class="incident-layout">
       <div>
@@ -21,7 +20,7 @@ import { SentinelStore } from '../../core/sentinel.store';
               <span class="severity-bar" [class]="incident.severity"></span>
               <div class="incident-card-main"><div><span class="incident-id">{{ incident.id }}</span><span class="severity" [class]="incident.severity">{{ severityLabel(incident.severity) }}</span></div><strong>{{ incident.title }}</strong><p>{{ incident.summary }}</p><footer><span>{{ incident.affectedApplicationIds.length }} servicios afectados</span><span>{{ relativeTime(incident.startedAt) }}</span></footer></div>
             </button>
-          }
+          } @empty { <div class="empty-state"><h2>No hay incidencias</h2><p>Las incidencias persistidas apareceran aqui.</p></div> }
         </div>
       </div>
       @if (selected(); as incident) {

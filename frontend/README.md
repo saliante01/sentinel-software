@@ -32,8 +32,8 @@ npm test -- --watch=false
 - Inventario y registro de aplicaciones
 - Monitores de health check y endpoints API
 - Importacion asistida de OpenAPI JSON y archivos HAR
-- Recorridos web con contrato preparado para un worker Playwright
-- Inspeccion de ejecuciones mediante waterfall de red
+- Recorridos web deshabilitados hasta disponer de un worker Playwright real
+- Inspeccion de ejecuciones HTTP y evidencia sanitizada
 - Investigacion de incidencias y evidencia
 - Referencias de credenciales para endpoints privados
 
@@ -41,16 +41,15 @@ El cliente y los contratos HTTP se encuentran en `src/app/core`. Los secretos
 no se guardan en el frontend; los formularios solo manejan la referencia que
 debe resolver el entorno del backend.
 
-## Estado del prototipo
+## Estado operativo
 
-Aplicaciones, checks, monitores, descubrimiento OpenAPI/HAR, ejecuciones e
-incidencias utilizan la API real. Los campos de entorno y etiquetas siguen
-siendo locales porque el backend aun no los persiste.
+Aplicaciones, checks, monitores, descubrimiento OpenAPI/HAR, ejecuciones,
+incidencias, dependencias, mapa y referencias de credenciales utilizan la API
+real. Sentinel no carga fixtures ni presenta resultados de red inventados.
 
-Los recorridos web y su waterfall utilizan datos demostrativos. Sentinel no
-simula esta capacidad en el backend: `BROWSER_JOURNEY` devuelve `501` hasta que
-se despliegue un worker real basado en Playwright.
+`BROWSER_JOURNEY` permanece visible como contrato futuro, pero no genera datos:
+devuelve `501` hasta que se despliegue un worker real basado en Playwright.
 
-El mapa de topologia y el inventario de referencias de credenciales conservan
-datos demostrativos hasta que sus contratos permitan relaciones entre
-aplicaciones y administracion segura de secretos.
+El scheduler ejecuta automaticamente monitores HTTP activos `GET`/`HEAD`. Cada
+monitor puede definir `intervalSeconds`, `expectedStatus` o
+`expectedStatuses`. El intervalo minimo predeterminado es de 60 segundos.

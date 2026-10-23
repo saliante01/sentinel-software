@@ -31,7 +31,15 @@ public class MonitorRunService {
 
 	@Transactional
 	public MonitorRunResponse run(Long applicationId, Long monitorId) {
-		Monitor monitor = getMonitor(applicationId, monitorId);
+		return execute(getMonitor(applicationId, monitorId));
+	}
+
+	@Transactional
+	public MonitorRunResponse runScheduled(Monitor monitor) {
+		return execute(monitor);
+	}
+
+	private MonitorRunResponse execute(Monitor monitor) {
 		if (monitor.getType() == MonitorType.BROWSER_JOURNEY) throw new BrowserJourneyWorkerRequiredException();
 		String method = monitor.getMethod() == null ? "GET" : monitor.getMethod().toUpperCase(Locale.ROOT);
 		if (!method.equals("GET") && !method.equals("HEAD")) {
@@ -42,15 +50,33 @@ public class MonitorRunService {
 		}
 
 		CheckResult result = httpCheckClient.check(monitor.getApplication(), monitor.getUrl(), HttpMethod.valueOf(method));
+		boolean success = isExpectedStatus(monitor, result.httpStatus());
 		MonitorRun run = new MonitorRun();
 		run.setMonitor(monitor);
 		run.setCheckedAt(result.checkedAt());
 		run.setDurationMs(result.responseTimeMs());
 		run.setStatus(result.httpStatus());
-		run.setSuccess(result.available());
-		run.setError(result.errorMessage());
+		run.setSuccess(success);
+		run.setError(success ? null : result.errorMessage());
 		run.setConfig(monitor.getConfig());
+		run.setEvidence(result.evidence());
 		return MonitorRunResponse.from(repository.save(run));
+	}
+
+	static boolean isExpectedStatus(Monitor monitor, Integer status) {
+		if (status == null) return false;
+		if (monitor.getConfig() != null) {
+			var statuses = monitor.getConfig().get("expectedStatuses");
+			if (statuses != null && statuses.isArray()) {
+				for (var expected : statuses) {
+					if (expected.isIntegralNumber() && expected.asInt() == status) return true;
+				}
+				return false;
+			}
+			var expected = monitor.getConfig().get("expectedStatus");
+			if (expected != null && expected.isIntegralNumber()) return expected.asInt() == status;
+		}
+		return status >= 200 && status < 300;
 	}
 
 	@Transactional(readOnly = true)

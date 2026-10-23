@@ -29,7 +29,7 @@ const SAMPLE_OPENAPI = `{
           <button [class.selected]="type() === 'API_ENDPOINT'" (click)="selectType('API_ENDPOINT')"><span class="source-icon">API</span><strong>Importar API</strong><p>Descubre endpoints desde OpenAPI o HAR.</p><small>Recomendado para APIs</small></button>
           <button [class.selected]="type() === 'BROWSER_JOURNEY'" (click)="selectType('BROWSER_JOURNEY')"><span class="source-icon">WEB</span><strong>Recorrido web</strong><p>Captura las solicitudes de una sesion real.</p><small>Requiere worker Playwright</small></button>
         </div>
-        <label class="field app-select"><span>Aplicacion</span><select [(ngModel)]="applicationId">@for (app of store.applications(); track app.id) { <option [ngValue]="app.id">{{ app.name }} · {{ app.environment }}</option> }</select></label>
+        <label class="field app-select"><span>Aplicacion</span><select [(ngModel)]="applicationId">@for (app of store.applications(); track app.id) { <option [ngValue]="app.id">{{ app.name }}</option> }</select></label>
         <footer class="wizard-actions"><span></span><button class="button primary" (click)="step.set(2)">Continuar</button></footer>
       </section>
     }
@@ -47,15 +47,16 @@ const SAMPLE_OPENAPI = `{
     }
 
     @if (step() === 2 && type() === 'HEALTH_CHECK') {
-      <section class="wizard-card"><div class="section-heading"><span>02</span><div><h2>Configurar health check</h2><p>Utilizaremos las credenciales heredadas de la aplicacion.</p></div></div><label class="field"><span>Nombre</span><input [(ngModel)]="healthName" /></label><label class="field"><span>URL</span><input [(ngModel)]="healthUrl" class="mono" /></label><footer class="wizard-actions"><button class="button" (click)="step.set(1)">Atras</button><button class="button primary" (click)="prepareHealth()">Revisar monitor</button></footer></section>
+      <section class="wizard-card"><div class="section-heading"><span>02</span><div><h2>Configurar health check</h2><p>Utilizaremos las credenciales heredadas de la aplicacion.</p></div></div><label class="field"><span>Nombre</span><input [(ngModel)]="healthName" /></label><label class="field"><span>URL</span><input [(ngModel)]="healthUrl" class="mono" /></label><div class="field-grid two"><label class="field"><span>Estado HTTP esperado</span><input type="number" min="100" max="599" [(ngModel)]="expectedStatus" /></label><label class="field"><span>Intervalo en segundos</span><input type="number" min="60" [(ngModel)]="intervalSeconds" /></label></div><footer class="wizard-actions"><button class="button" (click)="step.set(1)">Atras</button><button class="button primary" (click)="prepareHealth()">Revisar monitor</button></footer></section>
     }
 
     @if (step() === 2 && type() === 'BROWSER_JOURNEY') {
-      <section class="wizard-card"><div class="section-heading"><span>02</span><div><h2>Definir recorrido</h2><p>El worker abrira un navegador aislado y registrara la red durante estas acciones.</p></div></div><label class="field"><span>URL inicial</span><input [(ngModel)]="journeyUrl" class="mono" /></label><div class="journey-steps"><div><i>1</i><span><strong>Abrir pagina</strong><small>{{ journeyUrl }}</small></span></div><div><i>2</i><span><strong>Iniciar sesion</strong><small>Usar credencial de la aplicacion</small></span></div><div><i>3</i><span><strong>Esperar actividad de red</strong><small>Capturar XHR, fetch, recursos y errores</small></span></div><button>+ Agregar accion</button></div><aside class="worker-warning"><strong>Worker pendiente</strong><p>El recorrido se puede guardar ahora, pero su ejecucion real necesitara el worker Playwright. La interfaz mostrara datos demostrativos hasta entonces.</p></aside><footer class="wizard-actions"><button class="button" (click)="step.set(1)">Atras</button><button class="button primary" (click)="prepareJourney()">Guardar recorrido</button></footer></section>
+      <section class="wizard-card"><div class="section-heading"><span>02</span><div><h2>Definir recorrido</h2><p>El worker abrira un navegador aislado y registrara la red durante estas acciones.</p></div></div><label class="field"><span>URL inicial</span><input [(ngModel)]="journeyUrl" class="mono" /></label><div class="journey-steps"><div><i>1</i><span><strong>Abrir pagina</strong><small>{{ journeyUrl }}</small></span></div><div><i>2</i><span><strong>Iniciar sesion</strong><small>Usar credencial de la aplicacion</small></span></div><div><i>3</i><span><strong>Esperar actividad de red</strong><small>Capturar XHR, fetch, recursos y errores</small></span></div></div><aside class="worker-warning"><strong>Worker pendiente</strong><p>El contrato puede guardarse, pero no se generaran resultados ni evidencia hasta desplegar un worker Playwright real.</p></aside><footer class="wizard-actions"><button class="button" (click)="step.set(1)">Atras</button><button class="button primary" (click)="prepareJourney()">Guardar contrato</button></footer></section>
     }
 
     @if (step() === 3) {
       <section class="wizard-card wide"><div class="section-heading"><span>03</span><div><h2>Seleccionar solicitudes</h2><p>Se descubrieron {{ candidates().length }} candidatos. Activa solo operaciones estables y relevantes.</p></div></div>
+        <div class="field-grid two"><label class="field"><span>Estado HTTP esperado</span><input type="number" min="100" max="599" [(ngModel)]="expectedStatus" /></label><label class="field"><span>Intervalo en segundos</span><input type="number" min="60" [(ngModel)]="intervalSeconds" /></label></div>
         <div class="selection-toolbar"><label><input type="checkbox" [checked]="allSelected()" (change)="toggleAll()" /> Seleccionar todos</label><span>{{ selectedCount() }} seleccionados</span></div>
         <div class="candidate-list">@for (candidate of candidates(); track candidate.id) { <label><input type="checkbox" [checked]="candidate.selected" (change)="toggleCandidate(candidate.id)" /><span class="method" [class.post]="candidate.method === 'POST'">{{ candidate.method }}</span><span><strong>{{ candidate.name }}</strong><small class="mono">{{ candidate.url }}</small></span><em>{{ candidate.source }}</em></label> }</div>
         <footer class="wizard-actions"><button class="button" (click)="step.set(2)">Atras</button><button class="button primary" [disabled]="selectedCount() === 0" (click)="step.set(4)">Revisar seleccion</button></footer>
@@ -81,6 +82,8 @@ export class MonitorCreate {
   healthName = 'Disponibilidad principal';
   healthUrl = 'https://api.northstar.io/health';
   journeyUrl = 'https://app.northstar.io';
+  expectedStatus = 200;
+  intervalSeconds = 300;
   readonly selectedApplication = computed(() => this.store.applicationById(this.applicationId));
   readonly selectedCount = computed(() => this.candidates().filter((item) => item.selected).length);
   readonly allSelected = computed(() => this.candidates().length > 0 && this.candidates().every((item) => item.selected));
@@ -114,7 +117,7 @@ export class MonitorCreate {
   prepareJourney(): void { this.candidates.set([{ id: 'journey', name: 'Recorrido de usuario', method: 'BROWSER', url: this.journeyUrl, source: 'BROWSER', selected: true }]); this.step.set(4); }
   create(): void {
     if (!this.applicationId) { this.parseError.set('Selecciona una aplicacion.'); this.step.set(1); return; }
-    this.store.addMonitors(this.candidates().filter((item) => item.selected).map((item) => ({ applicationId: this.applicationId, name: item.name, type: this.type(), method: item.method, url: item.url, active: true, lastStatus: 'unknown', config: { source: item.source, prototype: this.type() === 'BROWSER_JOURNEY' } }))).subscribe({
+    this.store.addMonitors(this.candidates().filter((item) => item.selected).map((item) => ({ applicationId: this.applicationId, name: item.name, type: this.type(), method: item.method, url: item.url, active: true, lastStatus: 'unknown', config: { source: item.source, expectedStatus: this.expectedStatus, intervalSeconds: Math.max(60, this.intervalSeconds) } }))).subscribe({
       next: (created) => void this.router.navigate(created.length === 1 ? ['/monitors', created[0].id] : ['/monitors']),
       error: (error) => this.parseError.set(error.error?.detail ?? 'No se pudieron crear los monitores.'),
     });

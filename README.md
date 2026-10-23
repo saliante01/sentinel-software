@@ -51,6 +51,19 @@ npm start
 Open `http://localhost:4200`. Angular proxies `/api` to the backend during
 development, so no CORS configuration is required locally.
 
+### Monitor a deployed application
+
+1. Register the deployed application using a public `https://` URL.
+2. Create a `HEALTH_CHECK` or import its OpenAPI/HAR document.
+3. Set the expected HTTP status and interval. Sentinel executes active
+   `GET`/`HEAD` monitors automatically, with a minimum interval of 60 seconds.
+4. Inspect persisted runs from the monitor detail page.
+
+For an authenticated-but-protected endpoint, a response such as `401` can be
+the expected healthy result. Configure `expectedStatus: 401` in the monitor.
+Secrets are resolved by the backend from the reference configured on the
+application; they are never returned to Angular.
+
 Run the tests:
 
 ```bash

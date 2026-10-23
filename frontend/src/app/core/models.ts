@@ -14,7 +14,7 @@ export interface MonitoredApplication {
   authType: AuthType;
   credentialRef?: string;
   credentialConfigured: boolean;
-  environment: 'Produccion' | 'Staging' | 'Desarrollo';
+  environment?: 'Produccion' | 'Staging' | 'Desarrollo';
   tags: string[];
   responseTimeMs?: number;
   uptime?: number;
@@ -42,10 +42,12 @@ export interface Incident {
 }
 
 export interface ServiceDependency {
-  id: string;
-  sourceApplicationId: number;
-  targetApplicationId: number;
-  type: 'depends-on' | 'calls' | 'related-to';
+  id: number;
+  applicationId: number;
+  name: string;
+  url: string;
+  active: boolean;
+  createdAt: string;
 }
 
 export interface CredentialReference {

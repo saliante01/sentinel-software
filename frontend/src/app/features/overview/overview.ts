@@ -13,9 +13,9 @@ import { SentinelStore } from '../../core/sentinel.store';
 
     <section class="metric-grid">
       <article class="metric"><span>Servicios monitorizados</span><strong>{{ store.applications().length }}</strong><small><i class="dot healthy"></i>{{ activeCount() }} activos</small></article>
-      <article class="metric"><span>Disponibilidad global</span><strong>98.74<em>%</em></strong><small class="positive">+0.18% esta semana</small></article>
-      <article class="metric danger-glow"><span>Incidencias activas</span><strong>{{ store.activeIncidents().length }}</strong><small><i class="dot down"></i>1 impacto critico</small></article>
-      <article class="metric"><span>Latencia promedio</span><strong>214<em> ms</em></strong><small class="warning-text">+32 ms en 24 horas</small></article>
+      <article class="metric"><span>Checks registrados</span><strong>{{ checkCount() }}</strong><small>Historial real disponible</small></article>
+      <article class="metric danger-glow"><span>Incidencias activas</span><strong>{{ store.activeIncidents().length }}</strong><small><i class="dot down"></i>{{ criticalCount() }} de impacto critico</small></article>
+      <article class="metric"><span>Latencia promedio</span><strong>{{ averageLatency() }}<em> ms</em></strong><small>Ultimos checks disponibles</small></article>
     </section>
 
     <section class="overview-grid">
@@ -26,7 +26,7 @@ import { SentinelStore } from '../../core/sentinel.store';
             <a class="service-row" [routerLink]="['/applications', application.id]">
               <span class="service-code" [class]="'service-code ' + application.status">{{ application.code }}</span>
               <span class="service-main"><strong>{{ application.name }}</strong><small>{{ application.url }}</small></span>
-              <span class="environment">{{ application.environment }}</span>
+              <span class="environment">{{ application.environment ?? '--' }}</span>
               <span class="latency">{{ application.responseTimeMs ? application.responseTimeMs + ' ms' : '--' }}</span>
               <span class="status" [class]="application.status"><i></i>{{ statusLabel(application.status) }}</span>
             </a>
@@ -47,18 +47,24 @@ import { SentinelStore } from '../../core/sentinel.store';
       </article>
     </section>
 
-    <section class="panel incident-strip">
+    @if (criticalIncident(); as incident) { <section class="panel incident-strip">
       <div class="incident-marker"><span>!</span></div>
-      <div class="incident-copy"><span class="severity critical">CRITICA</span><strong>{{ criticalIncident()?.title }}</strong><p>{{ criticalIncident()?.summary }}</p></div>
-      <div class="incident-meta"><small>INICIADA</small><strong>hace 18 min</strong></div>
+      <div class="incident-copy"><span class="severity critical">CRITICA</span><strong>{{ incident.title }}</strong><p>{{ incident.summary }}</p></div>
+      <div class="incident-meta"><small>INICIADA</small><strong>{{ incident.startedAt }}</strong></div>
       <a class="button" routerLink="/incidents">Investigar</a>
-    </section>
+    </section> }
   `,
 })
 export class Overview {
   readonly store = inject(SentinelStore);
   readonly activeCount = computed(() => this.store.applications().filter((item) => item.active).length);
   readonly criticalIncident = computed(() => this.store.incidents().find((item) => item.severity === 'critical'));
+  readonly criticalCount = computed(() => this.store.activeIncidents().filter((item) => item.severity === 'critical').length);
+  readonly checkCount = computed(() => Object.values(this.store.checks()).flat().length);
+  readonly averageLatency = computed(() => {
+    const checks = Object.values(this.store.checks()).flat();
+    return checks.length ? Math.round(checks.reduce((total, item) => total + item.responseTimeMs, 0) / checks.length) : 0;
+  });
 
   statusLabel(status: string): string {
     return ({ healthy: 'Operativo', degraded: 'Degradado', down: 'Caido', unknown: 'Sin datos' } as Record<string, string>)[status];

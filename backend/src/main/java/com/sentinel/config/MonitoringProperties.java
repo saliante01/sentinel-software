@@ -20,4 +20,12 @@ public class MonitoringProperties {
 
 	private boolean allowPrivateTargets = false;
 
+	private Scheduler scheduler = new Scheduler();
+
+	@Getter @Setter
+	public static class Scheduler {
+		private boolean enabled = true;
+		private Duration minimumInterval = Duration.ofSeconds(60);
+	}
+
 }

@@ -13,6 +13,9 @@ import org.springframework.transaction.annotation.Transactional;
 public class IncidentService {
 	private final IncidentRepository repository;
 	private final MonitoredApplicationRepository applicationRepository;
+	@Transactional(readOnly = true) public List<IncidentResponse> findAll() {
+		return repository.findAllByOrderByStartedAtDesc().stream().map(IncidentResponse::from).toList();
+	}
 	@Transactional(readOnly = true) public List<IncidentResponse> findAll(Long applicationId) {
 		requireApplication(applicationId);
 		return repository.findByApplicationIdOrderByStartedAtDesc(applicationId).stream().map(IncidentResponse::from).toList();

@@ -10,6 +10,7 @@ import {
   MonitorDto,
   MonitorRunDto,
   PageDto,
+  ServiceDependencyDto,
 } from './api.contracts';
 
 @Injectable({ providedIn: 'root' })
@@ -58,5 +59,17 @@ export class SentinelApi {
 
   allMonitors(applicationIds: number[]): Observable<MonitorDto[][]> {
     return forkJoin(applicationIds.map((id) => this.monitors(id)));
+  }
+
+  allMonitorsAggregate(): Observable<MonitorDto[]> {
+    return this.http.get<MonitorDto[]>('/api/monitors');
+  }
+
+  allIncidents(): Observable<IncidentDto[]> {
+    return this.http.get<IncidentDto[]>('/api/incidents');
+  }
+
+  dependencies(applicationId: number): Observable<ServiceDependencyDto[]> {
+    return this.http.get<ServiceDependencyDto[]>(`/api/applications/${applicationId}/dependencies`);
   }
 }

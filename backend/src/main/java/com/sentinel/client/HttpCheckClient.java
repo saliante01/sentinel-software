@@ -7,21 +7,28 @@ import com.sentinel.exception.MissingCredentialException;
 import com.sentinel.model.MonitoredApplication;
 import com.sentinel.security.AllowedTargetPolicy;
 import java.time.Instant;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 import org.springframework.http.HttpMethod;
 import org.springframework.web.client.RestClient;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 @RequiredArgsConstructor
 public class HttpCheckClient {
 
 	private static final int MAX_ERROR_MESSAGE_LENGTH = 1000;
+	private static final List<String> SAFE_RESPONSE_HEADERS = List.of(
+			"Cache-Control", "Content-Length", "ETag", "Last-Modified");
 
 	private final RestClient monitoringRestClient;
 	private final AllowedTargetPolicy targetPolicy;
 	private final AuthStrategyFactory authStrategyFactory;
+	private final ObjectMapper objectMapper;
 
 	public CheckResult check(MonitoredApplication application) {
 		return check(application, application.getUrl(), HttpMethod.GET);
@@ -37,15 +44,28 @@ public class HttpCheckClient {
 					application.getAuthType(),
 					application.getCredentialRef());
 
-			Integer httpStatus = monitoringRestClient.method(method)
+			HttpResponse response = monitoringRestClient.method(method)
 					.uri(url)
 					.headers(authStrategy::apply)
-					.exchange((request, response) -> response.getStatusCode().value());
+					.exchange((request, clientResponse) -> {
+						Map<String, String> headers = new LinkedHashMap<>();
+						SAFE_RESPONSE_HEADERS.forEach(name -> {
+							String value = clientResponse.getHeaders().getFirst(name);
+							if (value != null) headers.put(name, value);
+						});
+						String contentType = clientResponse.getHeaders().getContentType() == null ? null
+								: clientResponse.getHeaders().getContentType().toString();
+						return new HttpResponse(clientResponse.getStatusCode().value(), contentType, headers);
+					});
 
 			long responseTimeMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startedAt);
-			boolean available = httpStatus >= 200 && httpStatus < 300;
+			boolean available = response.status() >= 200 && response.status() < 300;
+			Map<String, Object> evidence = new LinkedHashMap<>();
+			if (response.contentType() != null) evidence.put("contentType", response.contentType());
+			if (!response.headers().isEmpty()) evidence.put("headers", response.headers());
 
-			return new CheckResult(checkedAt, responseTimeMs, httpStatus, available, messageForStatus(httpStatus));
+			return new CheckResult(checkedAt, responseTimeMs, response.status(), available,
+					messageForStatus(response.status()), objectMapper.valueToTree(evidence));
 		} catch (MissingCredentialException exception) {
 			return failure(checkedAt, startedAt, exception.getMessage());
 		} catch (InvalidTargetException exception) {
@@ -57,7 +77,7 @@ public class HttpCheckClient {
 
 	private CheckResult failure(Instant checkedAt, long startedAt, String errorMessage) {
 		long responseTimeMs = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startedAt);
-		return new CheckResult(checkedAt, responseTimeMs, null, false, truncate(errorMessage));
+		return new CheckResult(checkedAt, responseTimeMs, null, false, truncate(errorMessage), null);
 	}
 
 	private String messageForStatus(int httpStatus) {
@@ -95,5 +115,7 @@ public class HttpCheckClient {
 		}
 		return message.substring(0, MAX_ERROR_MESSAGE_LENGTH);
 	}
+
+	private record HttpResponse(int status, String contentType, Map<String, String> headers) {}
 
 }

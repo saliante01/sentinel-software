@@ -27,7 +27,7 @@ import { SentinelStore } from '../../core/sentinel.store';
           @for (application of filtered(); track application.id) {
             <tr>
               <td><a class="application-cell" [routerLink]="['/applications', application.id]"><span class="service-code" [class]="'service-code ' + application.status">{{ application.code }}</span><span><strong>{{ application.name }}</strong><small>{{ application.url }}</small></span></a></td>
-              <td><span class="environment">{{ application.environment }}</span></td>
+              <td><span class="environment">{{ application.environment ?? 'No definido' }}</span></td>
               <td><span class="status" [class]="application.status"><i></i>{{ statusLabel(application.status) }}</span></td>
               <td class="mono">{{ application.responseTimeMs ? application.responseTimeMs + ' ms' : '--' }}</td>
               <td><span class="uptime">{{ application.uptime ?? '--' }}{{ application.uptime ? '%' : '' }}</span></td>

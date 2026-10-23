@@ -75,3 +75,12 @@ export interface DiscoveryResponseDto {
   format: string;
   candidates: DiscoveryCandidateDto[];
 }
+
+export interface ServiceDependencyDto {
+  id: number;
+  applicationId: number;
+  name: string;
+  url: string;
+  active: boolean;
+  createdAt: string;
+}

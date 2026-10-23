@@ -71,7 +71,7 @@
 .sidebar-footer { margin-top: auto; padding: 18px 20px; border-top: 1px solid var(--line); }
 .system-state { display: flex; align-items: center; gap: 9px; color: #788192; font-size: 11px; }
 .system-state i { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green); }
-.mock-label { margin-top: 8px; color: #474e5c; font: 10px var(--mono); }
+.source-label { margin-top: 8px; color: #474e5c; font: 10px var(--mono); }
 
 .workspace { grid-column: 2; min-width: 0; }
 .topbar {

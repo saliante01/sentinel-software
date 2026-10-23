@@ -2,7 +2,7 @@ import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { SentinelStore } from '../../core/sentinel.store';
-import { AuthType, MonitoredApplication } from '../../core/models';
+import { AuthType } from '../../core/models';
 
 @Component({
   selector: 'app-application-form',
@@ -14,12 +14,8 @@ import { AuthType, MonitoredApplication } from '../../core/models';
     <form class="form-layout" [formGroup]="form" (ngSubmit)="submit()">
       <section class="form-card">
         <div class="section-heading"><span>01</span><div><h2>Identificacion</h2><p>Informacion visible en el inventario y el mapa.</p></div></div>
-        <div class="field-grid two">
-          <label class="field"><span>Nombre de la aplicacion</span><input formControlName="name" placeholder="Ej. API de facturacion" />@if (showError('name')) { <small>Introduce un nombre de al menos 3 caracteres.</small> }</label>
-          <label class="field"><span>Entorno</span><select formControlName="environment"><option>Produccion</option><option>Staging</option><option>Desarrollo</option></select></label>
-        </div>
+        <label class="field"><span>Nombre de la aplicacion</span><input formControlName="name" placeholder="Ej. API de facturacion" />@if (showError('name')) { <small>Introduce un nombre de al menos 3 caracteres.</small> }</label>
         <label class="field"><span>URL de comprobacion</span><input class="mono" formControlName="url" placeholder="https://api.example.com/health" />@if (showError('url')) { <small>Debe ser una URL HTTP o HTTPS valida.</small> }</label>
-        <label class="field"><span>Etiquetas <em>separadas por comas</em></span><input formControlName="tags" placeholder="core, pagos, critico" /></label>
       </section>
 
       <section class="form-card">
@@ -45,8 +41,6 @@ export class ApplicationForm {
   readonly form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(100)]],
     url: ['', [Validators.required, Validators.pattern(/^https?:\/\/\S+$/)]],
-    environment: ['Produccion' as MonitoredApplication['environment'], Validators.required],
-    tags: [''],
     authType: ['NONE' as AuthType, Validators.required],
     credentialRef: [''],
   });
@@ -59,7 +53,7 @@ export class ApplicationForm {
       return;
     }
     const value = this.form.getRawValue();
-    this.store.addApplication({ ...value, credentialRef: value.credentialRef.trim() || undefined, tags: value.tags.split(',').map((tag) => tag.trim()).filter(Boolean) }).subscribe({
+    this.store.addApplication({ ...value, credentialRef: value.credentialRef.trim() || undefined }).subscribe({
       next: (application) => void this.router.navigate(['/applications', application.id]),
       error: () => this.form.setErrors({ api: true }),
     });

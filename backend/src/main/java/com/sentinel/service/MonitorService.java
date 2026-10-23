@@ -25,6 +25,11 @@ public class MonitorService {
 	private final AllowedTargetPolicy targetPolicy;
 
 	@Transactional(readOnly = true)
+	public List<MonitorResponse> findAll() {
+		return repository.findAllByOrderByCreatedAtDesc().stream().map(MonitorResponse::from).toList();
+	}
+
+	@Transactional(readOnly = true)
 	public List<MonitorResponse> findAll(Long applicationId) {
 		requireApplication(applicationId);
 		return repository.findByApplicationIdOrderByCreatedAtDesc(applicationId).stream()
