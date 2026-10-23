@@ -19,10 +19,31 @@ public class ApiExceptionHandler {
 		return problem;
 	}
 
+	@ExceptionHandler(ResourceNotFoundException.class)
+	public ProblemDetail handleResourceNotFound(ResourceNotFoundException exception) {
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_FOUND, exception.getMessage());
+		problem.setTitle("Resource not found");
+		return problem;
+	}
+
+	@ExceptionHandler(IllegalArgumentException.class)
+	public ProblemDetail handleIllegalArgument(IllegalArgumentException exception) {
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
+		problem.setTitle("Invalid request");
+		return problem;
+	}
+
 	@ExceptionHandler(InvalidTargetException.class)
 	public ProblemDetail handleInvalidTarget(InvalidTargetException exception) {
 		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, exception.getMessage());
 		problem.setTitle("Invalid target");
+		return problem;
+	}
+
+	@ExceptionHandler(BrowserJourneyWorkerRequiredException.class)
+	public ProblemDetail handleBrowserWorkerRequired(BrowserJourneyWorkerRequiredException exception) {
+		ProblemDetail problem = ProblemDetail.forStatusAndDetail(HttpStatus.NOT_IMPLEMENTED, exception.getMessage());
+		problem.setTitle("Browser worker required");
 		return problem;
 	}
 

@@ -8,6 +8,9 @@ export const routes: Routes = [
   { path: 'applications/:id', loadComponent: () => import('./features/applications/application-detail').then((m) => m.ApplicationDetail) },
   { path: 'incidents', loadComponent: () => import('./features/incidents/incidents').then((m) => m.Incidents) },
   { path: 'credentials', loadComponent: () => import('./features/credentials/credentials').then((m) => m.Credentials) },
+  { path: 'monitors', loadComponent: () => import('./features/monitors/monitors').then((m) => m.Monitors) },
+  { path: 'monitors/new', loadComponent: () => import('./features/monitors/monitor-create').then((m) => m.MonitorCreate) },
+  { path: 'monitors/:id', loadComponent: () => import('./features/monitors/monitor-detail').then((m) => m.MonitorDetail) },
   { path: '', pathMatch: 'full', redirectTo: 'overview' },
   { path: '**', redirectTo: 'overview' },
 ];

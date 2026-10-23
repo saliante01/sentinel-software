@@ -2,12 +2,17 @@ package com.sentinel.service;
 
 import com.sentinel.dto.ApplicationResponse;
 import com.sentinel.dto.CreateApplicationRequest;
+import com.sentinel.dto.UpdateApplicationRequest;
 import com.sentinel.exception.ApplicationNotFoundException;
 import com.sentinel.exception.InvalidApplicationConfigurationException;
 import com.sentinel.model.AuthType;
 import com.sentinel.model.MonitoredApplication;
 import com.sentinel.repository.HealthCheckRepository;
+import com.sentinel.repository.IncidentRepository;
+import com.sentinel.repository.MonitorRepository;
+import com.sentinel.repository.MonitorRunRepository;
 import com.sentinel.repository.MonitoredApplicationRepository;
+import com.sentinel.repository.ServiceDependencyRepository;
 import com.sentinel.security.AllowedTargetPolicy;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +27,10 @@ public class MonitoredApplicationService {
 	private final MonitoredApplicationRepository repository;
 	private final HealthCheckRepository healthCheckRepository;
 	private final AllowedTargetPolicy targetPolicy;
+	private final MonitorRepository monitorRepository;
+	private final MonitorRunRepository monitorRunRepository;
+	private final IncidentRepository incidentRepository;
+	private final ServiceDependencyRepository dependencyRepository;
 
 	@Transactional(readOnly = true)
 	public List<ApplicationResponse> findAll() {
@@ -54,9 +63,32 @@ public class MonitoredApplicationService {
 	}
 
 	@Transactional
+	public ApplicationResponse update(Long id, UpdateApplicationRequest request) {
+		MonitoredApplication application = getOrThrow(id);
+		if (request.name() != null) application.setName(request.name().trim());
+		if (request.url() != null) {
+			String url = request.url().trim();
+			targetPolicy.validateForRegistration(url);
+			application.setUrl(url);
+		}
+		if (request.active() != null) application.setActive(request.active());
+		AuthType authType = request.authType() == null ? application.getAuthType() : request.authType();
+		String credentialRef = request.credentialRef() == null
+				? application.getCredentialRef() : normalize(request.credentialRef());
+		validateCredentialConfiguration(authType, credentialRef);
+		application.setAuthType(authType);
+		application.setCredentialRef(credentialRef);
+		return ApplicationResponse.from(repository.save(application));
+	}
+
+	@Transactional
 	public void delete(Long id) {
 		MonitoredApplication application = getOrThrow(id);
 		healthCheckRepository.deleteByApplicationId(id);
+		monitorRunRepository.deleteByMonitorApplicationId(id);
+		monitorRepository.deleteByApplicationId(id);
+		incidentRepository.deleteByApplicationId(id);
+		dependencyRepository.deleteByApplicationId(id);
 		repository.delete(application);
 	}
 

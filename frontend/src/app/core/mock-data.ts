@@ -4,6 +4,8 @@ import {
   Incident,
   MonitoredApplication,
   ServiceDependency,
+  Monitor,
+  NetworkRequest,
 } from './models';
 
 export const MOCK_APPLICATIONS: MonitoredApplication[] = [
@@ -53,4 +55,22 @@ export const MOCK_ACTIVITY: ActivityItem[] = [
   { id: 'act-2', title: 'Umbral de latencia superado', detail: 'API Gateway alcanzo 892 ms', timestamp: 'Hace 11 min', tone: 'warning' },
   { id: 'act-3', title: 'Servicio recuperado', detail: 'Identidad responde con normalidad', timestamp: 'Ayer, 22:19', tone: 'success' },
   { id: 'act-4', title: 'Aplicacion registrada', detail: 'Motor antifraude se agrego a Desarrollo', timestamp: '14 oct, 13:40', tone: 'neutral' },
+];
+
+export const MOCK_MONITORS: Monitor[] = [
+  { id: 1, applicationId: 1, name: 'Carga del portal y login', type: 'BROWSER_JOURNEY', method: 'BROWSER', url: 'https://app.northstar.io', active: true, lastStatus: 'degraded', lastRunAt: '2026-10-22T14:12:00Z', responseTimeMs: 2840, config: { steps: 4, requests: 18 } },
+  { id: 2, applicationId: 2, name: 'Disponibilidad del gateway', type: 'HEALTH_CHECK', method: 'GET', url: 'https://api.northstar.io/health', active: true, lastStatus: 'healthy', lastRunAt: '2026-10-22T14:14:00Z', responseTimeMs: 184, config: { intervalSeconds: 60 } },
+  { id: 3, applicationId: 2, name: 'Consultar catalogo', type: 'API_ENDPOINT', method: 'GET', url: 'https://api.northstar.io/v1/catalog', active: true, lastStatus: 'healthy', lastRunAt: '2026-10-22T14:13:00Z', responseTimeMs: 262, config: { source: 'OPENAPI' } },
+  { id: 4, applicationId: 3, name: 'Crear intento de pago', type: 'API_ENDPOINT', method: 'POST', url: 'https://payments.northstar.io/v1/intents', active: true, lastStatus: 'down', lastRunAt: '2026-10-22T14:13:00Z', responseTimeMs: 5012, config: { source: 'OPENAPI' } },
+  { id: 5, applicationId: 6, name: 'Flujo de notificacion', type: 'BROWSER_JOURNEY', method: 'BROWSER', url: 'https://staging.northstar.io/notifications', active: false, lastStatus: 'unknown', config: { steps: 3, requests: 11 } },
+];
+
+export const MOCK_NETWORK_REQUESTS: NetworkRequest[] = [
+  { id: 'req-1', method: 'GET', url: 'app.northstar.io/', type: 'document', status: 200, durationMs: 420, sizeKb: 18.4, offsetMs: 0 },
+  { id: 'req-2', method: 'GET', url: 'app.northstar.io/main.js', type: 'script', status: 200, durationMs: 610, sizeKb: 284, offsetMs: 185 },
+  { id: 'req-3', method: 'GET', url: 'app.northstar.io/styles.css', type: 'stylesheet', status: 200, durationMs: 210, sizeKb: 42, offsetMs: 190 },
+  { id: 'req-4', method: 'POST', url: 'api.northstar.io/v1/session', type: 'fetch', status: 200, durationMs: 780, sizeKb: 2.1, offsetMs: 860 },
+  { id: 'req-5', method: 'GET', url: 'api.northstar.io/v1/profile', type: 'xhr', status: 200, durationMs: 340, sizeKb: 4.8, offsetMs: 1670 },
+  { id: 'req-6', method: 'GET', url: 'api.northstar.io/v1/payments', type: 'xhr', status: 503, durationMs: 930, sizeKb: 0.8, offsetMs: 1820 },
+  { id: 'req-7', method: 'GET', url: 'cdn.northstar.io/avatar.webp', type: 'image', status: 200, durationMs: 190, sizeKb: 16.2, offsetMs: 1730 },
 ];

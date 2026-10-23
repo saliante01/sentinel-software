@@ -9,7 +9,11 @@ import com.sentinel.model.MonitoredApplication;
 import com.sentinel.repository.HealthCheckRepository;
 import com.sentinel.repository.MonitoredApplicationRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -34,6 +38,18 @@ public class HealthCheckService {
 		healthCheck.setErrorMessage(result.errorMessage());
 
 		return HealthCheckResponse.from(healthCheckRepository.save(healthCheck));
+	}
+
+	@Transactional(readOnly = true)
+	public Page<HealthCheckResponse> history(Long applicationId, int page, int size) {
+		if (page < 0 || size < 1) throw new IllegalArgumentException("page must be at least 0 and size at least 1");
+		if (!applicationRepository.existsById(applicationId)) {
+			throw new ApplicationNotFoundException(applicationId);
+		}
+		PageRequest pageable = PageRequest.of(page, Math.min(size, 100),
+				Sort.by(Sort.Direction.DESC, "checkedAt"));
+		return healthCheckRepository.findByApplicationId(applicationId, pageable)
+				.map(HealthCheckResponse::from);
 	}
 
 }

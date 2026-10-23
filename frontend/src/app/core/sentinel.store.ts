@@ -1,6 +1,6 @@
 import { Injectable, computed, signal } from '@angular/core';
-import { MOCK_ACTIVITY, MOCK_APPLICATIONS, MOCK_CREDENTIALS, MOCK_DEPENDENCIES, MOCK_INCIDENTS } from './mock-data';
-import { AuthType, MonitoredApplication } from './models';
+import { MOCK_ACTIVITY, MOCK_APPLICATIONS, MOCK_CREDENTIALS, MOCK_DEPENDENCIES, MOCK_INCIDENTS, MOCK_MONITORS, MOCK_NETWORK_REQUESTS } from './mock-data';
+import { AuthType, Monitor, MonitoredApplication } from './models';
 
 export interface CreateApplicationInput {
   name: string;
@@ -18,6 +18,8 @@ export class SentinelStore {
   readonly credentials = signal([...MOCK_CREDENTIALS]);
   readonly dependencies = signal([...MOCK_DEPENDENCIES]);
   readonly activity = signal([...MOCK_ACTIVITY]);
+  readonly monitors = signal([...MOCK_MONITORS]);
+  readonly networkRequests = signal([...MOCK_NETWORK_REQUESTS]);
 
   readonly activeIncidents = computed(() => this.incidents().filter((item) => item.status !== 'resolved'));
   readonly healthyApplications = computed(() => this.applications().filter((item) => item.status === 'healthy'));
@@ -44,5 +46,12 @@ export class SentinelStore {
     };
     this.applications.update((applications) => [application, ...applications]);
     return application;
+  }
+
+  addMonitors(monitors: Omit<Monitor, 'id'>[]): Monitor[] {
+    let nextId = Math.max(...this.monitors().map((item) => item.id)) + 1;
+    const created = monitors.map((monitor) => ({ ...monitor, id: nextId++ }));
+    this.monitors.update((current) => [...created, ...current]);
+    return created;
   }
 }

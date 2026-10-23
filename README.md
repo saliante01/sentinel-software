@@ -64,7 +64,16 @@ The database file is created under `backend/data/` and is ignored by Git.
 | GET | `/api/applications` | List monitored applications |
 | GET | `/api/applications/{id}` | Get one application |
 | POST | `/api/applications` | Register an application |
+| PATCH | `/api/applications/{id}` | Update an application |
 | DELETE | `/api/applications/{id}` | Delete an application |
+| POST | `/api/applications/{id}/checks` | Run the application health check |
+| GET | `/api/applications/{id}/checks` | Read paginated health check history |
+| GET/POST | `/api/applications/{id}/monitors` | List or create monitors |
+| GET/PUT/DELETE | `/api/applications/{id}/monitors/{monitorId}` | Manage one monitor |
+| GET/POST | `/api/applications/{id}/monitors/{monitorId}/runs` | Read or execute monitor runs |
+| POST | `/api/monitor-discovery` | Discover endpoints from OpenAPI or HAR JSON |
+| GET/POST | `/api/applications/{id}/incidents` | List or create incidents |
+| GET/POST | `/api/applications/{id}/dependencies` | List or create dependencies |
 
 Create an application:
 
@@ -88,8 +97,8 @@ Validation errors and missing applications are returned as RFC 9457 `application
 - [x] Stage 1 — REST basics
 - [x] Stage 2 — In-memory registration (implemented with H2 persistence)
 - [x] Stage 3 — Application management (list, lookup, delete)
-- [ ] Stage 4 — Manual health checks
+- [x] Stage 4 — Manual health checks
 - [ ] Stage 5 — PostgreSQL and migrations
 - [ ] Stage 6 — Scheduling
-- [ ] Stage 7 — History
+- [x] Stage 7 — History
 - [ ] Stage 8 — Quality and documentation

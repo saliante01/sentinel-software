@@ -10,6 +10,7 @@ import java.time.Instant;
 import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
+import org.springframework.http.HttpMethod;
 import org.springframework.web.client.RestClient;
 
 @Component
@@ -23,17 +24,21 @@ public class HttpCheckClient {
 	private final AuthStrategyFactory authStrategyFactory;
 
 	public CheckResult check(MonitoredApplication application) {
+		return check(application, application.getUrl(), HttpMethod.GET);
+	}
+
+	public CheckResult check(MonitoredApplication application, String url, HttpMethod method) {
 		Instant checkedAt = Instant.now();
 		long startedAt = System.nanoTime();
 
 		try {
-			targetPolicy.validateForCheck(application.getUrl());
+			targetPolicy.validateForCheck(url);
 			AuthStrategy authStrategy = authStrategyFactory.create(
 					application.getAuthType(),
 					application.getCredentialRef());
 
-			Integer httpStatus = monitoringRestClient.get()
-					.uri(application.getUrl())
+			Integer httpStatus = monitoringRestClient.method(method)
+					.uri(url)
 					.headers(authStrategy::apply)
 					.exchange((request, response) -> response.getStatusCode().value());
 
@@ -64,6 +69,9 @@ public class HttpCheckClient {
 		}
 		if (httpStatus >= 300 && httpStatus < 400) {
 			return "Redirect received but redirects are not followed";
+		}
+		if (httpStatus >= 400) {
+			return "HTTP request failed with status " + httpStatus;
 		}
 		return null;
 	}

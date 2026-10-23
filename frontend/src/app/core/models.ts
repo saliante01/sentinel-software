@@ -2,6 +2,7 @@ export type ServiceStatus = 'healthy' | 'degraded' | 'down' | 'unknown';
 export type IncidentStatus = 'open' | 'investigating' | 'resolved';
 export type IncidentSeverity = 'low' | 'medium' | 'high' | 'critical';
 export type AuthType = 'NONE' | 'BEARER';
+export type MonitorType = 'HEALTH_CHECK' | 'API_ENDPOINT' | 'BROWSER_JOURNEY';
 
 export interface MonitoredApplication {
   id: number;
@@ -62,4 +63,38 @@ export interface ActivityItem {
   detail: string;
   timestamp: string;
   tone: 'success' | 'warning' | 'danger' | 'neutral';
+}
+
+export interface Monitor {
+  id: number;
+  applicationId: number;
+  name: string;
+  type: MonitorType;
+  method: string;
+  url: string;
+  active: boolean;
+  lastStatus: ServiceStatus;
+  lastRunAt?: string;
+  responseTimeMs?: number;
+  config: Record<string, unknown>;
+}
+
+export interface DiscoveryCandidate {
+  id: string;
+  name: string;
+  method: string;
+  url: string;
+  source: 'OPENAPI' | 'HAR' | 'BROWSER';
+  selected: boolean;
+}
+
+export interface NetworkRequest {
+  id: string;
+  method: string;
+  url: string;
+  type: string;
+  status: number;
+  durationMs: number;
+  sizeKb: number;
+  offsetMs: number;
 }
