@@ -59,7 +59,9 @@ export class ApplicationForm {
       return;
     }
     const value = this.form.getRawValue();
-    const application = this.store.addApplication({ ...value, credentialRef: value.credentialRef.trim() || undefined, tags: value.tags.split(',').map((tag) => tag.trim()).filter(Boolean) });
-    void this.router.navigate(['/applications', application.id]);
+    this.store.addApplication({ ...value, credentialRef: value.credentialRef.trim() || undefined, tags: value.tags.split(',').map((tag) => tag.trim()).filter(Boolean) }).subscribe({
+      next: (application) => void this.router.navigate(['/applications', application.id]),
+      error: () => this.form.setErrors({ api: true }),
+    });
   }
 }

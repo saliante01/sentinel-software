@@ -1,0 +1,16 @@
+.connection-error {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding: 11px 14px;
+  border: 1px solid #5a2b33;
+  border-radius: 7px;
+  background: #211419;
+}
+
+.connection-error span { color: var(--red); font: 700 8px var(--mono); }
+.connection-error p { margin: 0; color: #b77b83; font-size: 10px; }
+.connection-error button { margin-left: auto; border: 0; background: transparent; color: #ea8c95; font-size: 9px; }
+.simulation-banner.error { border-color: #642e37; background: #241419; }
+.simulation-banner.error span, .simulation-banner.error p { color: var(--red); }

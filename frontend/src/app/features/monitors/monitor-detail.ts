@@ -7,7 +7,8 @@ import { SentinelStore } from '../../core/sentinel.store';
   imports: [RouterLink],
   template: `
     @if (monitor(); as monitor) {
-      <header class="page-heading detail-heading"><div><a class="back-link" routerLink="/monitors">← Monitores</a><p class="eyebrow">{{ monitor.type === 'BROWSER_JOURNEY' ? 'Recorrido sintetico' : 'Monitor HTTP' }}</p><h1>{{ monitor.name }}</h1><p class="mono">{{ monitor.url }}</p></div><div class="heading-actions"><button class="button">Editar</button><button class="button primary">Ejecutar ahora</button></div></header>
+      <header class="page-heading detail-heading"><div><a class="back-link" routerLink="/monitors">← Monitores</a><p class="eyebrow">{{ monitor.type === 'BROWSER_JOURNEY' ? 'Recorrido sintetico' : 'Monitor HTTP' }}</p><h1>{{ monitor.name }}</h1><p class="mono">{{ monitor.url }}</p></div><div class="heading-actions"><button class="button">Editar</button><button class="button primary" [disabled]="running" (click)="run(monitor)">{{ running ? 'Ejecutando...' : 'Ejecutar ahora' }}</button></div></header>
+      @if (runError) { <aside class="simulation-banner error"><span>ERROR</span><p>{{ runError }}</p></aside> }
       @if (monitor.type === 'BROWSER_JOURNEY') {
         <aside class="simulation-banner"><span>PROTOTIPO</span><p>Este waterfall utiliza una ejecucion simulada. El contrato esta listo, pero la captura real requiere desplegar el worker Playwright.</p></aside>
       }
@@ -43,5 +44,15 @@ export class MonitorDetail {
   readonly application = computed(() => this.monitor() ? this.store.applicationById(this.monitor()!.applicationId) : undefined);
   readonly totalSize = computed(() => this.store.networkRequests().reduce((total, item) => total + item.sizeKb, 0).toFixed(1));
   readonly errors = computed(() => this.store.networkRequests().filter((item) => item.status >= 400).length);
+  running = false;
+  runError = '';
+  run(monitor: import('../../core/models').Monitor): void {
+    this.running = true;
+    this.runError = '';
+    this.store.runMonitor(monitor).subscribe({
+      next: () => this.running = false,
+      error: (error) => { this.running = false; this.runError = error.error?.detail ?? 'No se pudo ejecutar el monitor.'; },
+    });
+  }
   statusLabel(status: string): string { return ({ healthy: 'Correcto', degraded: 'Degradado', down: 'Fallido', unknown: 'Sin datos' } as Record<string, string>)[status]; }
 }

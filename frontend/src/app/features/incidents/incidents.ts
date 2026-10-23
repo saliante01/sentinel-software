@@ -40,9 +40,9 @@ import { SentinelStore } from '../../core/sentinel.store';
 export class Incidents {
   readonly store = inject(SentinelStore);
   readonly filter = signal<'active' | 'resolved' | 'all'>('active');
-  readonly selectedId = signal('INC-2048');
+  readonly selectedId = signal('');
   readonly filtered = computed(() => this.store.incidents().filter((item) => this.filter() === 'all' || (this.filter() === 'active' ? item.status !== 'resolved' : item.status === 'resolved')));
-  readonly selected = computed(() => this.store.incidents().find((item) => item.id === this.selectedId()));
+  readonly selected = computed(() => this.store.incidents().find((item) => item.id === this.selectedId()) ?? this.filtered()[0]);
   severityLabel(value: string): string { return ({ critical: 'Critica', high: 'Alta', medium: 'Media', low: 'Baja' } as Record<string, string>)[value]; }
   statusLabel(value: string): string { return ({ open: 'Abierta', investigating: 'Investigando', resolved: 'Resuelta' } as Record<string, string>)[value]; }
   relativeTime(value: string): string { return new Date(value).toLocaleDateString('es', { day: '2-digit', month: 'short' }); }

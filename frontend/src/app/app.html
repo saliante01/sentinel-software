@@ -21,7 +21,7 @@
 
     <div class="sidebar-footer">
       <div class="system-state"><i></i> Sentinel operativo</div>
-      <div class="mock-label">DATA SOURCE / MOCK</div>
+      <div class="mock-label">DATA SOURCE / API + BROWSER DEMO</div>
     </div>
   </aside>
 
@@ -30,6 +30,9 @@
       <span class="context">NORTHSTAR / PRODUCCION</span>
       <div class="top-actions"><span class="live-pill">LIVE</span><span class="avatar">SA</span></div>
     </header>
-    <main class="content"><router-outlet /></main>
+    <main class="content">
+      @if (store.error(); as error) { <div class="connection-error"><span>API</span><p>{{ error }}</p><button (click)="store.reload()">Reintentar</button></div> }
+      <router-outlet />
+    </main>
   </section>
 </div>

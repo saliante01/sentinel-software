@@ -40,6 +40,17 @@ cd backend
 
 The API starts at `http://localhost:8080`.
 
+Start the integrated web interface in another terminal:
+
+```bash
+cd frontend
+npm install
+npm start
+```
+
+Open `http://localhost:4200`. Angular proxies `/api` to the backend during
+development, so no CORS configuration is required locally.
+
 Run the tests:
 
 ```bash

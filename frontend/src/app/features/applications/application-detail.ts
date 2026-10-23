@@ -9,7 +9,7 @@ import { SentinelStore } from '../../core/sentinel.store';
     @if (application(); as app) {
       <header class="page-heading detail-heading">
         <div><a class="back-link" routerLink="/applications">← Aplicaciones</a><div class="title-with-code"><span class="service-code large" [class]="'service-code large ' + app.status">{{ app.code }}</span><div><h1>{{ app.name }}</h1><p class="mono">{{ app.url }}</p></div></div></div>
-        <div class="heading-actions"><button class="button">Editar</button><button class="button primary">Ejecutar check</button></div>
+        <div class="heading-actions"><button class="button">Editar</button><button class="button primary" [disabled]="checking" (click)="runCheck()">{{ checking ? 'Ejecutando...' : 'Ejecutar check' }}</button></div>
       </header>
       <section class="detail-metrics">
         <article><span>Estado actual</span><strong class="status large" [class]="app.status"><i></i>{{ statusLabel(app.status) }}</strong></article>
@@ -45,6 +45,11 @@ export class ApplicationDetail {
   readonly id = Number(this.route.snapshot.paramMap.get('id'));
   readonly application = computed(() => this.store.applicationById(this.id));
   readonly incidents = computed(() => this.store.incidents().filter((item) => item.affectedApplicationIds.includes(this.id)));
+  checking = false;
+  runCheck(): void {
+    this.checking = true;
+    this.store.runApplicationCheck(this.id).subscribe({ next: () => this.checking = false, error: () => this.checking = false });
+  }
   statusLabel(status: string): string { return ({ healthy: 'Operativo', degraded: 'Degradado', down: 'Caido', unknown: 'Sin datos' } as Record<string, string>)[status]; }
   formatDate(value: string): string { return new Intl.DateTimeFormat('es', { dateStyle: 'medium' }).format(new Date(value)); }
 }

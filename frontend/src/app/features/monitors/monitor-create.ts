@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { DiscoveryCandidate, MonitorType } from '../../core/models';
@@ -76,7 +76,7 @@ export class MonitorCreate {
   readonly candidates = signal<DiscoveryCandidate[]>([]);
   readonly parseError = signal('');
   readonly fileName = signal('');
-  applicationId = this.store.applications()[1].id;
+  applicationId = 0;
   sourceDocument = SAMPLE_OPENAPI;
   healthName = 'Disponibilidad principal';
   healthUrl = 'https://api.northstar.io/health';
@@ -85,6 +85,12 @@ export class MonitorCreate {
   readonly selectedCount = computed(() => this.candidates().filter((item) => item.selected).length);
   readonly allSelected = computed(() => this.candidates().length > 0 && this.candidates().every((item) => item.selected));
 
+  constructor() {
+    effect(() => {
+      if (!this.applicationId && this.store.applications().length) this.applicationId = this.store.applications()[0].id;
+    });
+  }
+
   selectType(type: MonitorType): void { this.type.set(type); this.format.set(type === 'BROWSER_JOURNEY' ? 'BROWSER' : 'OPENAPI'); }
   typeLabel(): string { return ({ HEALTH_CHECK: 'Health check', API_ENDPOINT: 'Endpoints API', BROWSER_JOURNEY: 'Recorrido web' } as Record<MonitorType, string>)[this.type()]; }
   readFile(event: Event): void { const file = (event.target as HTMLInputElement).files?.[0]; if (!file) return; this.fileName.set(file.name); const reader = new FileReader(); reader.onload = () => this.sourceDocument = String(reader.result); reader.readAsText(file); }
@@ -92,19 +98,25 @@ export class MonitorCreate {
     this.parseError.set('');
     try {
       const document = JSON.parse(this.sourceDocument);
-      const discovered = this.format() === 'HAR' ? this.fromHar(document) : this.fromOpenApi(document);
-      if (!discovered.length) throw new Error('No se encontraron solicitudes compatibles.');
-      this.candidates.set(discovered); this.step.set(3);
+      this.store.discover(document).subscribe({
+        next: (response) => {
+          const discovered = response.candidates.map((item, index) => ({ ...item, id: `${item.method}-${index}`, selected: item.method === 'GET' }));
+          if (!discovered.length) { this.parseError.set('No se encontraron solicitudes compatibles.'); return; }
+          this.candidates.set(discovered); this.step.set(3);
+        },
+        error: (error) => this.parseError.set(error.error?.detail ?? 'El backend no pudo procesar el documento.'),
+      });
     } catch (error) { this.parseError.set(error instanceof Error ? error.message : 'Documento no valido.'); }
   }
-  private fromOpenApi(document: any): DiscoveryCandidate[] {
-    const base = document.servers?.[0]?.url ?? '';
-    return Object.entries(document.paths ?? {}).flatMap(([path, operations]: [string, any]) => Object.entries(operations).filter(([method]) => ['get','post','put','patch','delete','head','options'].includes(method)).map(([method, operation]: [string, any], index) => ({ id: `${method}-${path}-${index}`, name: operation.summary ?? `${method.toUpperCase()} ${path}`, method: method.toUpperCase(), url: `${base}${path}`, source: 'OPENAPI' as const, selected: method === 'get' })));
-  }
-  private fromHar(document: any): DiscoveryCandidate[] { return (document.log?.entries ?? []).filter((entry: any) => ['fetch', 'xhr'].includes(entry._resourceType) || entry.request?.url).map((entry: any, index: number) => ({ id: `har-${index}`, name: `${entry.request.method} ${new URL(entry.request.url).pathname}`, method: entry.request.method, url: entry.request.url, source: 'HAR' as const, selected: ['GET','HEAD'].includes(entry.request.method) })); }
   toggleCandidate(id: string): void { this.candidates.update((items) => items.map((item) => item.id === id ? { ...item, selected: !item.selected } : item)); }
   toggleAll(): void { const selected = !this.allSelected(); this.candidates.update((items) => items.map((item) => ({ ...item, selected }))); }
   prepareHealth(): void { this.candidates.set([{ id: 'health', name: this.healthName, method: 'GET', url: this.healthUrl, source: 'OPENAPI', selected: true }]); this.step.set(4); }
   prepareJourney(): void { this.candidates.set([{ id: 'journey', name: 'Recorrido de usuario', method: 'BROWSER', url: this.journeyUrl, source: 'BROWSER', selected: true }]); this.step.set(4); }
-  create(): void { const created = this.store.addMonitors(this.candidates().filter((item) => item.selected).map((item) => ({ applicationId: this.applicationId, name: item.name, type: this.type(), method: item.method, url: item.url, active: true, lastStatus: 'unknown', config: { source: item.source, prototype: this.type() === 'BROWSER_JOURNEY' } }))); void this.router.navigate(created.length === 1 ? ['/monitors', created[0].id] : ['/monitors']); }
+  create(): void {
+    if (!this.applicationId) { this.parseError.set('Selecciona una aplicacion.'); this.step.set(1); return; }
+    this.store.addMonitors(this.candidates().filter((item) => item.selected).map((item) => ({ applicationId: this.applicationId, name: item.name, type: this.type(), method: item.method, url: item.url, active: true, lastStatus: 'unknown', config: { source: item.source, prototype: this.type() === 'BROWSER_JOURNEY' } }))).subscribe({
+      next: (created) => void this.router.navigate(created.length === 1 ? ['/monitors', created[0].id] : ['/monitors']),
+      error: (error) => this.parseError.set(error.error?.detail ?? 'No se pudieron crear los monitores.'),
+    });
+  }
 }
