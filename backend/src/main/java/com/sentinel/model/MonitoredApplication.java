@@ -2,6 +2,8 @@ package com.sentinel.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -34,6 +36,13 @@ public class MonitoredApplication {
 
 	@Column(nullable = false)
 	private boolean active = true;
+
+	@Enumerated(EnumType.STRING)
+	@Column(name = "auth_type", length = 20)
+	private AuthType authType = AuthType.NONE;
+
+	@Column(name = "credential_ref", length = 100)
+	private String credentialRef;
 
 	@PrePersist
 	void onCreate() {

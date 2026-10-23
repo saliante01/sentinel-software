@@ -1,0 +1,34 @@
+<div class="app-shell">
+  <aside class="sidebar">
+    <a class="brand" routerLink="/overview">
+      <span class="brand-mark">S</span>
+      <span><strong>SENTINEL</strong><small>Operations console</small></span>
+    </a>
+
+    <p class="nav-label">Observabilidad</p>
+    <nav class="nav" aria-label="Navegacion principal">
+      <a routerLink="/overview" routerLinkActive="active"><span class="nav-icon">01</span>Resumen</a>
+      <a routerLink="/map" routerLinkActive="active"><span class="nav-icon">02</span>Mapa de incidencias</a>
+      <a routerLink="/applications" routerLinkActive="active"><span class="nav-icon">03</span>Aplicaciones</a>
+      <a routerLink="/incidents" routerLinkActive="active"><span class="nav-icon">04</span>Incidencias</a>
+    </nav>
+
+    <p class="nav-label">Configuracion</p>
+    <nav class="nav" aria-label="Configuracion">
+      <a routerLink="/credentials" routerLinkActive="active"><span class="nav-icon">05</span>Credenciales</a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="system-state"><i></i> Sentinel operativo</div>
+      <div class="mock-label">DATA SOURCE / MOCK</div>
+    </div>
+  </aside>
+
+  <section class="workspace">
+    <header class="topbar">
+      <span class="context">NORTHSTAR / PRODUCCION</span>
+      <div class="top-actions"><span class="live-pill">LIVE</span><span class="avatar">SA</span></div>
+    </header>
+    <main class="content"><router-outlet /></main>
+  </section>
+</div>
