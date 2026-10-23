@@ -1,0 +1,22 @@
+.DS_Store
+
+# Backend
+backend/target/
+backend/data/
+backend/.classpath
+backend/.project
+backend/.settings/
+backend/.springBeans
+backend/.sts4-cache
+backend/HELP.md
+
+# IDE
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+
+# Frontend (when a framework is chosen)
+frontend/node_modules/
+frontend/dist/
